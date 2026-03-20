@@ -18,7 +18,10 @@ export interface UserProfile {
 export interface MeasurementInput {
   date: string;
   weightKg: number;
+  bmi: number;
+  fatMassKg: number;
   steps: number;
+  boneMassKg: number;
   bodyFatPercent: number;
   muscleMassKg: number;
   waterPercent: number;

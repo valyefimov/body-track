@@ -11,7 +11,18 @@ import {
   YAxis,
 } from 'recharts';
 
-type MetricKey = 'weightKg' | 'steps' | 'bodyFatPercent' | 'muscleMassKg' | 'waterPercent';
+type MetricKey =
+  | 'weightKg'
+  | 'steps'
+  | 'bodyFatPercent'
+  | 'muscleMassKg'
+  | 'waterPercent'
+  | 'proteinPercent'
+  | 'visceralFatLevel'
+  | 'boneMassKg'
+  | 'fatMassKg'
+  | 'bmi'
+  | 'bmrKcal';
 
 interface MetricTrendChartProps {
   data: BodyMeasurement[];
@@ -19,6 +30,8 @@ interface MetricTrendChartProps {
   stroke: string;
   fill: string;
   unit: string;
+  heightCm?: number;
+  age?: number;
   compact?: boolean;
 }
 
@@ -28,12 +41,36 @@ export function MetricTrendChart({
   stroke,
   fill,
   unit,
+  heightCm,
+  age,
   compact = false,
 }: MetricTrendChartProps) {
   const chartData = data.map((entry) => {
+    let value = 0;
+
+    if (metricKey === 'fatMassKg') {
+      value =
+        entry.fatMassKg > 0
+          ? entry.fatMassKg
+          : entry.weightKg * (entry.bodyFatPercent / 100);
+    } else if (metricKey === 'bmi') {
+      if (entry.bmi > 0) {
+        value = entry.bmi;
+      } else {
+        const heightMeters = (heightCm ?? 0) / 100;
+        value = heightMeters > 0 ? entry.weightKg / (heightMeters * heightMeters) : 0;
+      }
+    } else if (metricKey === 'bmrKcal') {
+      const safeHeightCm = heightCm ?? 0;
+      const safeAge = age ?? 0;
+      value = 10 * entry.weightKg + 6.25 * safeHeightCm - 5 * safeAge + 5;
+    } else {
+      value = Number(entry[metricKey]);
+    }
+
     return {
       dateLabel: format(parseISO(entry.date), 'dd.MM', { locale: ru }),
-      value: Number(entry[metricKey]),
+      value,
     };
   });
 

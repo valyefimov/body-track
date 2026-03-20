@@ -24,7 +24,10 @@ interface AddMeasurementDialogProps {
 
 const numberFields = [
   'weightKg',
+  'bmi',
+  'fatMassKg',
   'steps',
+  'boneMassKg',
   'bodyFatPercent',
   'muscleMassKg',
   'waterPercent',
@@ -87,7 +90,10 @@ export function AddMeasurementDialog({
   const labels = useMemo<Record<NumberField, string>>(
     () => ({
       weightKg: 'Вес, кг',
+      bmi: 'ИМТ',
+      fatMassKg: 'Жир масса, кг',
       steps: 'Шаги',
+      boneMassKg: 'Костная масса, кг',
       bodyFatPercent: 'Жир, %',
       muscleMassKg: 'Мышечная масса, кг',
       waterPercent: 'Вода, %',
@@ -123,8 +129,23 @@ export function AddMeasurementDialog({
       return;
     }
 
+    if (form.bmi <= 0) {
+      setError('ИМТ должен быть больше нуля.');
+      return;
+    }
+
+    if (form.fatMassKg <= 0) {
+      setError('Жир масса должна быть больше нуля.');
+      return;
+    }
+
     if (form.steps < 0) {
       setError('Шаги не могут быть отрицательными.');
+      return;
+    }
+
+    if (form.boneMassKg <= 0) {
+      setError('Костная масса должна быть больше нуля.');
       return;
     }
 

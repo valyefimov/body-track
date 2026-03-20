@@ -16,17 +16,40 @@ interface RangeBarProps {
 }
 
 export function RangeBar({ min, max, value, segments, ticks = [], className }: RangeBarProps) {
-  const total = max - min;
+  const total = Math.max(max - min, 0.0001);
   const normalizedValue = Math.max(min, Math.min(max, value));
   const markerLeft = ((normalizedValue - min) / total) * 100;
+  const normalizedTicks = ticks
+    .map((tick) => Math.max(min, Math.min(max, tick)))
+    .sort((a, b) => a - b);
+
+  const formatTick = (tick: number): string => {
+    const rounded = Math.round(tick * 10) / 10;
+    const hasFraction = Math.abs(rounded - Math.trunc(rounded)) > 0.001;
+    return hasFraction
+      ? rounded.toFixed(1).replace('.', ',')
+      : rounded.toFixed(0).replace('.', ',');
+  };
 
   return (
     <div className={cn('space-y-2', className)}>
-      {ticks.length > 0 ? (
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          {ticks.map((tick) => (
-            <span key={tick}>{tick.toFixed(1).replace('.', ',')}</span>
-          ))}
+      {normalizedTicks.length > 0 ? (
+        <div className="relative h-5 text-xs text-muted-foreground">
+          {normalizedTicks.map((tick) => {
+            const left = ((tick - min) / total) * 100;
+            const alignClass =
+              left < 8 ? 'left-0 translate-x-0' : left > 92 ? 'right-0 translate-x-0' : '';
+
+            return (
+              <span
+                key={tick}
+                className={cn('absolute -translate-x-1/2', alignClass)}
+                style={!alignClass ? { left: `${left}%` } : undefined}
+              >
+                {formatTick(tick)}
+              </span>
+            );
+          })}
         </div>
       ) : null}
 

@@ -79,7 +79,9 @@ const deriveInitialMeasurement = (
   const heightMeters = profile.heightCm / 100;
   const bmi = profile.startWeightKg / (heightMeters * heightMeters);
   const bodyFatPercent = clamp(round(19 + (bmi - 22) * 1.2), 10, 45);
+  const fatMassKg = profile.startWeightKg * (bodyFatPercent / 100);
   const steps = clamp(Math.round(5500 - (bmi - 25) * 220), 2500, 12000);
+  const boneMassKg = clamp(round(profile.startWeightKg * 0.034, 2), 2.2, 6.2);
   const muscleMassKg = clamp(
     round(profile.startWeightKg * (0.52 - (bmi - 22) * 0.005), 2),
     20,
@@ -92,7 +94,10 @@ const deriveInitialMeasurement = (
   return {
     date: new Date().toISOString().slice(0, 10),
     weightKg: profile.startWeightKg,
+    bmi: round(bmi, 1),
+    fatMassKg: round(fatMassKg, 1),
     steps,
+    boneMassKg,
     bodyFatPercent,
     muscleMassKg,
     waterPercent,
@@ -170,6 +175,12 @@ const getRecommendations = (
     );
   }
 
+  if (latest.boneMassKg < latest.weightKg * 0.03) {
+    recommendations.push(
+      'Костная масса ниже оптимальной: добавь силовые упражнения и продукты с кальцием/витамином D.',
+    );
+  }
+
   if (latest.visceralFatLevel > 10) {
     recommendations.push(
       'Для снижения висцерального жира важны регулярный сон (7-8 ч) и отказ от поздних перекусов.',
@@ -215,14 +226,20 @@ export const calculateInsights = (
   previous: BodyMeasurement | null,
 ): DashboardInsights => {
   const heightMeters = profile.heightCm / 100;
-  const bmi = latest.weightKg / (heightMeters * heightMeters);
+  const derivedBmi = latest.weightKg / (heightMeters * heightMeters);
+  const bmi = latest.bmi > 0 ? latest.bmi : derivedBmi;
   const idealWeightKg = 22 * (heightMeters * heightMeters);
   const healthyRange = {
     min: round(18.5 * (heightMeters * heightMeters), 1),
     max: round(24.9 * (heightMeters * heightMeters), 1),
   };
   const bmrKcal = 10 * latest.weightKg + 6.25 * profile.heightCm - 5 * profile.age + 5;
-  const fatMassKg = latest.weightKg * (latest.bodyFatPercent / 100);
+  const derivedFatMassKg = latest.weightKg * (latest.bodyFatPercent / 100);
+  const fatMassKg = latest.fatMassKg > 0 ? latest.fatMassKg : derivedFatMassKg;
+  const boneMassRange = {
+    min: round(latest.weightKg * 0.03, 1),
+    max: round(latest.weightKg * 0.05, 1),
+  };
   const targetBodyFat = 20;
   const targetToLoseKg = Math.max(0, fatMassKg - latest.weightKg * (targetBodyFat / 100));
 
@@ -241,6 +258,20 @@ export const calculateInsights = (
       unit: '',
       status: bmiStatus(bmi),
       helper: `Здоровый диапазон ${healthyRange.min}-${healthyRange.max} кг.`,
+    },
+    {
+      title: 'Жировая масса',
+      value: round(fatMassKg, 1),
+      unit: ' кг',
+      status: statusByRange(latest.bodyFatPercent, 14, 24),
+      helper: 'Показатель жировой массы из твоего замера.',
+    },
+    {
+      title: 'Костная масса',
+      value: latest.boneMassKg,
+      unit: ' кг',
+      status: statusByRange(latest.boneMassKg, boneMassRange.min, boneMassRange.max),
+      helper: `Ориентир для текущего веса: ${boneMassRange.min}-${boneMassRange.max} кг.`,
     },
     {
       title: 'Шаги',

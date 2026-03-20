@@ -43,12 +43,18 @@ const getMeasurementsCollection = (uid: string) => {
 };
 
 const toMeasurement = (id: string, data: Record<string, unknown>): BodyMeasurement => {
+  const weightKg = Number(data.weightKg ?? 0);
+  const bodyFatPercent = Number(data.bodyFatPercent ?? 0);
+
   return {
     id,
     date: String(data.date ?? new Date().toISOString().slice(0, 10)),
-    weightKg: Number(data.weightKg ?? 0),
+    weightKg,
+    bmi: Number(data.bmi ?? 0),
+    fatMassKg: Number(data.fatMassKg ?? weightKg * (bodyFatPercent / 100)),
     steps: Number(data.steps ?? 0),
-    bodyFatPercent: Number(data.bodyFatPercent ?? 0),
+    boneMassKg: Number(data.boneMassKg ?? 0),
+    bodyFatPercent,
     muscleMassKg: Number(data.muscleMassKg ?? 0),
     waterPercent: Number(data.waterPercent ?? 0),
     proteinPercent: Number(data.proteinPercent ?? 0),
