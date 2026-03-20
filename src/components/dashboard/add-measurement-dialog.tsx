@@ -25,14 +25,14 @@ interface AddMeasurementDialogProps {
 const numberFields = [
   'weightKg',
   'bmi',
-  'fatMassKg',
-  'steps',
-  'boneMassKg',
   'bodyFatPercent',
-  'muscleMassKg',
+  'fatMassKg',
   'waterPercent',
   'proteinPercent',
   'visceralFatLevel',
+  'muscleMassKg',
+  'boneMassKg',
+  'steps',
 ] as const;
 
 type NumberField = (typeof numberFields)[number];

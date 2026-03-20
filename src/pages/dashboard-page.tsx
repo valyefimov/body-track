@@ -101,8 +101,17 @@ export function DashboardPage() {
     const muscleLow = latest.weightKg * 0.32;
     const muscleMid = latest.weightKg * 0.38;
     const muscleHigh = latest.weightKg * 0.45;
-
-    return [
+    const detailOrder = [
+      'bmi',
+      'fat-percent',
+      'fat-mass',
+      'water',
+      'protein',
+      'visceral-fat',
+      'muscle',
+      'bone',
+    ];
+    const details: DetailedMetric[] = [
       {
         key: 'bmi',
         title: 'ИМТ',
@@ -124,7 +133,7 @@ export function DashboardPage() {
       },
       {
         key: 'fat-percent',
-        title: 'Жир, %',
+        title: 'Жир %',
         valueLabel: `${latest.bodyFatPercent.toFixed(1).replace('.', ',')}%`,
         statusLabel: getLevelLabel(latest.bodyFatPercent, 17, 22, 27),
         helper: 'Нормальный диапазон жира: 17-22%.',
@@ -143,7 +152,7 @@ export function DashboardPage() {
       },
       {
         key: 'fat-mass',
-        title: 'Жир масса',
+        title: 'Жировая масса',
         valueLabel: `${fatMassKg.toFixed(1).replace('.', ',')} кг`,
         statusLabel: getLevelLabel(fatMassKg, fatMassLow, fatMassMid, fatMassHigh),
         helper: 'Показатель жировой массы из твоего замера.',
@@ -256,6 +265,8 @@ export function DashboardPage() {
         },
       },
     ];
+
+    return details.sort((a, b) => detailOrder.indexOf(a.key) - detailOrder.indexOf(b.key));
   }, [insights, latest, profile]);
 
   const defaults = useMemo<MeasurementInput>(() => {
@@ -366,14 +377,14 @@ export function DashboardPage() {
                     <TabsList className="w-full justify-start gap-1 overflow-x-auto whitespace-nowrap">
                       <TabsTrigger value="weight">Вес</TabsTrigger>
                       <TabsTrigger value="bmi">ИМТ</TabsTrigger>
-                      <TabsTrigger value="steps">Шаги</TabsTrigger>
-                      <TabsTrigger value="fat">Жир</TabsTrigger>
-                      <TabsTrigger value="fat-mass">Жир масса</TabsTrigger>
-                      <TabsTrigger value="bone-mass">Кость</TabsTrigger>
-                      <TabsTrigger value="muscle">Мышцы</TabsTrigger>
+                      <TabsTrigger value="fat">Жир %</TabsTrigger>
+                      <TabsTrigger value="fat-mass">Жировая масса</TabsTrigger>
                       <TabsTrigger value="water">Вода</TabsTrigger>
                       <TabsTrigger value="protein">Белок</TabsTrigger>
                       <TabsTrigger value="visceral">Висцеральный жир</TabsTrigger>
+                      <TabsTrigger value="muscle">Мышцы</TabsTrigger>
+                      <TabsTrigger value="bone-mass">Костная масса</TabsTrigger>
+                      <TabsTrigger value="steps">Шаги</TabsTrigger>
                       <TabsTrigger value="bmr">Осн. обмен</TabsTrigger>
                     </TabsList>
                     <TabsContent value="weight">
@@ -395,15 +406,6 @@ export function DashboardPage() {
                         heightCm={profile.heightCm}
                       />
                     </TabsContent>
-                    <TabsContent value="steps">
-                      <MetricTrendChart
-                        data={measurements}
-                        metricKey="steps"
-                        stroke="#0ea5e9"
-                        fill="#0ea5e9"
-                        unit=" шагов"
-                      />
-                    </TabsContent>
                     <TabsContent value="fat">
                       <MetricTrendChart
                         data={measurements}
@@ -417,24 +419,6 @@ export function DashboardPage() {
                       <MetricTrendChart
                         data={measurements}
                         metricKey="fatMassKg"
-                        stroke="#f97316"
-                        fill="#f97316"
-                        unit=" кг"
-                      />
-                    </TabsContent>
-                    <TabsContent value="bone-mass">
-                      <MetricTrendChart
-                        data={measurements}
-                        metricKey="boneMassKg"
-                        stroke="#22c55e"
-                        fill="#22c55e"
-                        unit=" кг"
-                      />
-                    </TabsContent>
-                    <TabsContent value="muscle">
-                      <MetricTrendChart
-                        data={measurements}
-                        metricKey="muscleMassKg"
                         stroke="#f97316"
                         fill="#f97316"
                         unit=" кг"
@@ -465,6 +449,33 @@ export function DashboardPage() {
                         stroke="#ef4444"
                         fill="#ef4444"
                         unit=""
+                      />
+                    </TabsContent>
+                    <TabsContent value="muscle">
+                      <MetricTrendChart
+                        data={measurements}
+                        metricKey="muscleMassKg"
+                        stroke="#f97316"
+                        fill="#f97316"
+                        unit=" кг"
+                      />
+                    </TabsContent>
+                    <TabsContent value="bone-mass">
+                      <MetricTrendChart
+                        data={measurements}
+                        metricKey="boneMassKg"
+                        stroke="#22c55e"
+                        fill="#22c55e"
+                        unit=" кг"
+                      />
+                    </TabsContent>
+                    <TabsContent value="steps">
+                      <MetricTrendChart
+                        data={measurements}
+                        metricKey="steps"
+                        stroke="#0ea5e9"
+                        fill="#0ea5e9"
+                        unit=" шагов"
                       />
                     </TabsContent>
                     <TabsContent value="bmr">

@@ -260,47 +260,18 @@ export const calculateInsights = (
       helper: `Здоровый диапазон ${healthyRange.min}-${healthyRange.max} кг.`,
     },
     {
-      title: 'Жировая масса',
-      value: round(fatMassKg, 1),
-      unit: ' кг',
-      status: statusByRange(latest.bodyFatPercent, 14, 24),
-      helper: 'Показатель жировой массы из твоего замера.',
-    },
-    {
-      title: 'Костная масса',
-      value: latest.boneMassKg,
-      unit: ' кг',
-      status: statusByRange(latest.boneMassKg, boneMassRange.min, boneMassRange.max),
-      helper: `Ориентир для текущего веса: ${boneMassRange.min}-${boneMassRange.max} кг.`,
-    },
-    {
-      title: 'Шаги',
-      value: latest.steps,
-      unit: '',
-      status:
-        latest.steps >= 10000
-          ? { tone: 'success', label: 'Отлично' }
-          : latest.steps >= 7000
-            ? { tone: 'warning', label: 'Близко к цели' }
-            : { tone: 'danger', label: 'Мало активности' },
-      helper: 'Цель для снижения веса: 7 000-10 000 шагов в день.',
-    },
-    {
-      title: 'Жир',
+      title: 'Жир %',
       value: latest.bodyFatPercent,
       unit: '%',
       status: statusByRange(latest.bodyFatPercent, 14, 24),
       helper: `Жировая масса ${round(fatMassKg, 1)} кг.`,
     },
     {
-      title: 'Мышцы',
-      value: latest.muscleMassKg,
+      title: 'Жировая масса',
+      value: round(fatMassKg, 1),
       unit: ' кг',
-      status:
-        latest.muscleMassKg / latest.weightKg >= 0.38
-          ? { tone: 'success', label: 'Хорошо' }
-          : { tone: 'warning', label: 'Нужно усилить' },
-      helper: 'Поддерживай мышцы силовыми и белком.',
+      status: statusByRange(latest.bodyFatPercent, 14, 24),
+      helper: 'Показатель жировой массы из твоего замера.',
     },
     {
       title: 'Вода',
@@ -322,6 +293,35 @@ export const calculateInsights = (
       unit: '',
       status: statusByMax(latest.visceralFatLevel, 10),
       helper: 'Ориентир: держать показатель ниже 10.',
+    },
+    {
+      title: 'Мышцы',
+      value: latest.muscleMassKg,
+      unit: ' кг',
+      status:
+        latest.muscleMassKg / latest.weightKg >= 0.38
+          ? { tone: 'success', label: 'Хорошо' }
+          : { tone: 'warning', label: 'Нужно усилить' },
+      helper: 'Поддерживай мышцы силовыми и белком.',
+    },
+    {
+      title: 'Костная масса',
+      value: latest.boneMassKg,
+      unit: ' кг',
+      status: statusByRange(latest.boneMassKg, boneMassRange.min, boneMassRange.max),
+      helper: `Ориентир для текущего веса: ${boneMassRange.min}-${boneMassRange.max} кг.`,
+    },
+    {
+      title: 'Шаги',
+      value: latest.steps,
+      unit: '',
+      status:
+        latest.steps >= 10000
+          ? { tone: 'success', label: 'Отлично' }
+          : latest.steps >= 7000
+            ? { tone: 'warning', label: 'Близко к цели' }
+            : { tone: 'danger', label: 'Мало активности' },
+      helper: 'Цель для снижения веса: 7 000-10 000 шагов в день.',
     },
     {
       title: 'Основной обмен',
