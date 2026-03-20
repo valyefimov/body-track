@@ -19,9 +19,17 @@ interface MetricTrendChartProps {
   stroke: string;
   fill: string;
   unit: string;
+  compact?: boolean;
 }
 
-export function MetricTrendChart({ data, metricKey, stroke, fill, unit }: MetricTrendChartProps) {
+export function MetricTrendChart({
+  data,
+  metricKey,
+  stroke,
+  fill,
+  unit,
+  compact = false,
+}: MetricTrendChartProps) {
   const chartData = data.map((entry) => {
     return {
       dateLabel: format(parseISO(entry.date), 'dd.MM', { locale: ru }),
@@ -30,18 +38,27 @@ export function MetricTrendChart({ data, metricKey, stroke, fill, unit }: Metric
   });
 
   return (
-    <div className="h-56 w-full">
+    <div className={compact ? 'h-40 w-full' : 'h-56 w-full'}>
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={chartData} margin={{ top: 16, right: 8, left: 0, bottom: 0 }}>
+        <AreaChart
+          data={chartData}
+          margin={compact ? { top: 8, right: 0, left: 0, bottom: 0 } : { top: 16, right: 8, left: 0, bottom: 0 }}
+        >
           <defs>
             <linearGradient id={`${metricKey}-gradient`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={fill} stopOpacity={0.4} />
               <stop offset="100%" stopColor={fill} stopOpacity={0.05} />
             </linearGradient>
           </defs>
-          <CartesianGrid vertical={false} strokeDasharray="4 4" strokeOpacity={0.16} />
-          <XAxis dataKey="dateLabel" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+          {!compact ? <CartesianGrid vertical={false} strokeDasharray="4 4" strokeOpacity={0.16} /> : null}
+          <XAxis
+            dataKey="dateLabel"
+            tick={compact ? false : { fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+          />
           <YAxis
+            hide={compact}
             width={30}
             tick={{ fontSize: 11 }}
             tickLine={false}

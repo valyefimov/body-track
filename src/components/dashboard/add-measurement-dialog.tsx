@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { MeasurementInput } from '@/types';
+import { format, isValid, parse, parseISO } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 
 interface AddMeasurementDialogProps {
@@ -49,11 +50,35 @@ export function AddMeasurementDialog({
   isSaving,
 }: AddMeasurementDialogProps) {
   const [form, setForm] = useState<MeasurementInput>(defaults);
+  const [displayDate, setDisplayDate] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  const formatDate = (isoDate: string): string => {
+    try {
+      return format(parseISO(isoDate), 'dd.MM.yyyy');
+    } catch {
+      return isoDate;
+    }
+  };
+
+  const parseDate = (input: string): string | null => {
+    const normalized = input.trim();
+    const parsed = parse(normalized, 'dd.MM.yyyy', new Date());
+    if (isValid(parsed)) {
+      return format(parsed, 'yyyy-MM-dd');
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+      return normalized;
+    }
+
+    return null;
+  };
 
   useEffect(() => {
     if (open) {
       setForm(defaults);
+      setDisplayDate(formatDate(defaults.date));
       setError(null);
     }
   }, [defaults, open]);
@@ -78,8 +103,10 @@ export function AddMeasurementDialog({
   };
 
   const handleSave = async () => {
-    if (!form.date) {
-      setError('Укажи дату замера.');
+    const parsedDate = parseDate(displayDate);
+
+    if (!parsedDate) {
+      setError('Укажи дату в формате ДД.ММ.ГГГГ.');
       return;
     }
 
@@ -94,7 +121,7 @@ export function AddMeasurementDialog({
     }
 
     setError(null);
-    await onSubmit(form);
+    await onSubmit({ ...form, date: parsedDate });
   };
 
   return (
@@ -112,9 +139,10 @@ export function AddMeasurementDialog({
             <Label htmlFor="date">Дата</Label>
             <Input
               id="date"
-              type="date"
-              value={form.date}
-              onChange={(event) => setForm((prev) => ({ ...prev, date: event.target.value }))}
+              type="text"
+              placeholder="20.03.2026"
+              value={displayDate}
+              onChange={(event) => setDisplayDate(event.target.value)}
             />
           </div>
 
