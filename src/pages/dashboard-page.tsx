@@ -6,8 +6,8 @@ import { RangeBar } from '@/components/dashboard/range-bar';
 import { RecommendationsCard } from '@/components/dashboard/recommendations-card';
 import { ScoreHero } from '@/components/dashboard/score-hero';
 import { AppShell } from '@/components/layout/app-shell';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { logout } from '@/features/auth/authSlice';
 import { createMeasurement } from '@/features/body/bodySlice';
 import { calculateInsights, getInitialMeasurement } from '@/lib/health';
@@ -38,6 +38,26 @@ interface DetailedMetric {
   };
 }
 
+interface TrendMetricTab {
+  id: string;
+  label: string;
+  metricKey:
+    | 'weightKg'
+    | 'bmi'
+    | 'bodyFatPercent'
+    | 'fatMassKg'
+    | 'waterPercent'
+    | 'proteinPercent'
+    | 'visceralFatLevel'
+    | 'muscleMassKg'
+    | 'boneMassKg'
+    | 'steps'
+    | 'bmrKcal';
+  stroke: string;
+  fill: string;
+  unit: string;
+}
+
 const getLevelLabel = (value: number, low: number, medium: number, high: number): string => {
   if (value <= low) {
     return 'Низкий';
@@ -57,6 +77,7 @@ export function DashboardPage() {
   const { user } = useAppSelector((state) => state.auth);
   const { profile, measurements, saveStatus, error } = useAppSelector((state) => state.body);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [activeTrendTab, setActiveTrendTab] = useState('bmi');
 
   const latest = measurements.length > 0 ? measurements[measurements.length - 1] : null;
   const previous = measurements.length > 1 ? measurements[measurements.length - 2] : null;
@@ -269,6 +290,80 @@ export function DashboardPage() {
     return details.sort((a, b) => detailOrder.indexOf(a.key) - detailOrder.indexOf(b.key));
   }, [insights, latest, profile]);
 
+  const trendTabs = useMemo<TrendMetricTab[]>(() => {
+    return [
+      { id: 'bmi', label: 'ИМТ', metricKey: 'bmi', stroke: '#f97316', fill: '#f97316', unit: '' },
+      {
+        id: 'fat',
+        label: 'Жир %',
+        metricKey: 'bodyFatPercent',
+        stroke: '#ef4444',
+        fill: '#ef4444',
+        unit: '%',
+      },
+      {
+        id: 'fat-mass',
+        label: 'Жировая масса',
+        metricKey: 'fatMassKg',
+        stroke: '#f97316',
+        fill: '#f97316',
+        unit: ' кг',
+      },
+      {
+        id: 'water',
+        label: 'Вода',
+        metricKey: 'waterPercent',
+        stroke: '#0ea5e9',
+        fill: '#0ea5e9',
+        unit: '%',
+      },
+      {
+        id: 'protein',
+        label: 'Белок',
+        metricKey: 'proteinPercent',
+        stroke: '#3b82f6',
+        fill: '#3b82f6',
+        unit: '%',
+      },
+      {
+        id: 'visceral',
+        label: 'Висцеральный жир',
+        metricKey: 'visceralFatLevel',
+        stroke: '#ef4444',
+        fill: '#ef4444',
+        unit: '',
+      },
+      {
+        id: 'muscle',
+        label: 'Мышцы',
+        metricKey: 'muscleMassKg',
+        stroke: '#f97316',
+        fill: '#f97316',
+        unit: ' кг',
+      },
+      {
+        id: 'bone-mass',
+        label: 'Костная масса',
+        metricKey: 'boneMassKg',
+        stroke: '#22c55e',
+        fill: '#22c55e',
+        unit: ' кг',
+      },
+      { id: 'steps', label: 'Шаги', metricKey: 'steps', stroke: '#0ea5e9', fill: '#0ea5e9', unit: ' шагов' },
+      { id: 'weight', label: 'Вес', metricKey: 'weightKg', stroke: '#84cc16', fill: '#84cc16', unit: ' кг' },
+      {
+        id: 'bmr',
+        label: 'Осн. обмен',
+        metricKey: 'bmrKcal',
+        stroke: '#0ea5e9',
+        fill: '#0ea5e9',
+        unit: ' ккал',
+      },
+    ];
+  }, []);
+
+  const selectedTrendTab = trendTabs.find((tab) => tab.id === activeTrendTab) ?? trendTabs[0];
+
   const defaults = useMemo<MeasurementInput>(() => {
     if (latest) {
       return {
@@ -373,123 +468,31 @@ export function DashboardPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <Tabs defaultValue="weight" className="gap-4">
-                    <TabsList className="w-full justify-start gap-1 overflow-x-auto whitespace-nowrap">
-                      <TabsTrigger value="weight">Вес</TabsTrigger>
-                      <TabsTrigger value="bmi">ИМТ</TabsTrigger>
-                      <TabsTrigger value="fat">Жир %</TabsTrigger>
-                      <TabsTrigger value="fat-mass">Жировая масса</TabsTrigger>
-                      <TabsTrigger value="water">Вода</TabsTrigger>
-                      <TabsTrigger value="protein">Белок</TabsTrigger>
-                      <TabsTrigger value="visceral">Висцеральный жир</TabsTrigger>
-                      <TabsTrigger value="muscle">Мышцы</TabsTrigger>
-                      <TabsTrigger value="bone-mass">Костная масса</TabsTrigger>
-                      <TabsTrigger value="steps">Шаги</TabsTrigger>
-                      <TabsTrigger value="bmr">Осн. обмен</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="weight">
-                      <MetricTrendChart
-                        data={measurements}
-                        metricKey="weightKg"
-                        stroke="#84cc16"
-                        fill="#84cc16"
-                        unit=" кг"
-                      />
-                    </TabsContent>
-                    <TabsContent value="bmi">
-                      <MetricTrendChart
-                        data={measurements}
-                        metricKey="bmi"
-                        stroke="#f97316"
-                        fill="#f97316"
-                        unit=""
-                        heightCm={profile.heightCm}
-                      />
-                    </TabsContent>
-                    <TabsContent value="fat">
-                      <MetricTrendChart
-                        data={measurements}
-                        metricKey="bodyFatPercent"
-                        stroke="#ef4444"
-                        fill="#ef4444"
-                        unit="%"
-                      />
-                    </TabsContent>
-                    <TabsContent value="fat-mass">
-                      <MetricTrendChart
-                        data={measurements}
-                        metricKey="fatMassKg"
-                        stroke="#f97316"
-                        fill="#f97316"
-                        unit=" кг"
-                      />
-                    </TabsContent>
-                    <TabsContent value="water">
-                      <MetricTrendChart
-                        data={measurements}
-                        metricKey="waterPercent"
-                        stroke="#0ea5e9"
-                        fill="#0ea5e9"
-                        unit="%"
-                      />
-                    </TabsContent>
-                    <TabsContent value="protein">
-                      <MetricTrendChart
-                        data={measurements}
-                        metricKey="proteinPercent"
-                        stroke="#3b82f6"
-                        fill="#3b82f6"
-                        unit="%"
-                      />
-                    </TabsContent>
-                    <TabsContent value="visceral">
-                      <MetricTrendChart
-                        data={measurements}
-                        metricKey="visceralFatLevel"
-                        stroke="#ef4444"
-                        fill="#ef4444"
-                        unit=""
-                      />
-                    </TabsContent>
-                    <TabsContent value="muscle">
-                      <MetricTrendChart
-                        data={measurements}
-                        metricKey="muscleMassKg"
-                        stroke="#f97316"
-                        fill="#f97316"
-                        unit=" кг"
-                      />
-                    </TabsContent>
-                    <TabsContent value="bone-mass">
-                      <MetricTrendChart
-                        data={measurements}
-                        metricKey="boneMassKg"
-                        stroke="#22c55e"
-                        fill="#22c55e"
-                        unit=" кг"
-                      />
-                    </TabsContent>
-                    <TabsContent value="steps">
-                      <MetricTrendChart
-                        data={measurements}
-                        metricKey="steps"
-                        stroke="#0ea5e9"
-                        fill="#0ea5e9"
-                        unit=" шагов"
-                      />
-                    </TabsContent>
-                    <TabsContent value="bmr">
-                      <MetricTrendChart
-                        data={measurements}
-                        metricKey="bmrKcal"
-                        stroke="#0ea5e9"
-                        fill="#0ea5e9"
-                        unit=" ккал"
-                        heightCm={profile.heightCm}
-                        age={profile.age}
-                      />
-                    </TabsContent>
-                  </Tabs>
+                  <div className="mb-4 overflow-x-auto pb-1">
+                    <div className="flex min-w-max items-center gap-2">
+                      {trendTabs.map((tab) => (
+                        <Button
+                          key={tab.id}
+                          variant={tab.id === selectedTrendTab.id ? 'default' : 'secondary'}
+                          size="sm"
+                          className="rounded-full px-3"
+                          onClick={() => setActiveTrendTab(tab.id)}
+                        >
+                          {tab.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <MetricTrendChart
+                    data={measurements}
+                    metricKey={selectedTrendTab.metricKey}
+                    stroke={selectedTrendTab.stroke}
+                    fill={selectedTrendTab.fill}
+                    unit={selectedTrendTab.unit}
+                    heightCm={profile.heightCm}
+                    age={profile.age}
+                  />
                 </CardContent>
               </Card>
             </motion.section>
