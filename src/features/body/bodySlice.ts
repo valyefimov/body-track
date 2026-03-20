@@ -47,6 +47,7 @@ const toMeasurement = (id: string, data: Record<string, unknown>): BodyMeasureme
     id,
     date: String(data.date ?? new Date().toISOString().slice(0, 10)),
     weightKg: Number(data.weightKg ?? 0),
+    steps: Number(data.steps ?? 0),
     bodyFatPercent: Number(data.bodyFatPercent ?? 0),
     muscleMassKg: Number(data.muscleMassKg ?? 0),
     waterPercent: Number(data.waterPercent ?? 0),

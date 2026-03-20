@@ -31,6 +31,7 @@ export function HistoryList({ measurements }: HistoryListProps) {
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-sm">
                   <span>{entry.weightKg.toFixed(1)} кг</span>
+                  <span className="text-muted-foreground">Шаги {entry.steps.toFixed(0)}</span>
                   <span className="text-muted-foreground">
                     Жир {entry.bodyFatPercent.toFixed(1)}%
                   </span>

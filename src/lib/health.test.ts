@@ -16,6 +16,7 @@ describe('health helpers', () => {
       id: '1',
       date: '2026-03-20',
       weightKg: 94.4,
+      steps: 6400,
       bodyFatPercent: 28.4,
       muscleMassKg: 38.2,
       waterPercent: 49.1,

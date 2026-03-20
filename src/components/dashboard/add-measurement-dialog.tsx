@@ -24,6 +24,7 @@ interface AddMeasurementDialogProps {
 
 const numberFields = [
   'weightKg',
+  'steps',
   'bodyFatPercent',
   'muscleMassKg',
   'waterPercent',
@@ -86,6 +87,7 @@ export function AddMeasurementDialog({
   const labels = useMemo<Record<NumberField, string>>(
     () => ({
       weightKg: 'Вес, кг',
+      steps: 'Шаги',
       bodyFatPercent: 'Жир, %',
       muscleMassKg: 'Мышечная масса, кг',
       waterPercent: 'Вода, %',
@@ -96,9 +98,10 @@ export function AddMeasurementDialog({
   );
 
   const handleNumberField = (field: NumberField, value: string) => {
+    const parsed = parseNumber(value, form[field]);
     setForm((previous) => ({
       ...previous,
-      [field]: parseNumber(value, previous[field]),
+      [field]: field === 'steps' ? Math.max(0, Math.round(parsed)) : parsed,
     }));
   };
 
@@ -117,6 +120,11 @@ export function AddMeasurementDialog({
 
     if (form.bodyFatPercent <= 0) {
       setError('Процент жира должен быть больше нуля.');
+      return;
+    }
+
+    if (form.steps < 0) {
+      setError('Шаги не могут быть отрицательными.');
       return;
     }
 
@@ -151,9 +159,9 @@ export function AddMeasurementDialog({
               <Label htmlFor={field}>{labels[field]}</Label>
               <Input
                 id={field}
-                inputMode="decimal"
+                inputMode={field === 'steps' ? 'numeric' : 'decimal'}
                 type="number"
-                step="0.1"
+                step={field === 'steps' ? '1' : '0.1'}
                 value={form[field]}
                 onChange={(event) => handleNumberField(field, event.target.value)}
               />

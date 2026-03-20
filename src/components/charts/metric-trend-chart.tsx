@@ -11,7 +11,7 @@ import {
   YAxis,
 } from 'recharts';
 
-type MetricKey = 'weightKg' | 'bodyFatPercent' | 'muscleMassKg' | 'waterPercent';
+type MetricKey = 'weightKg' | 'steps' | 'bodyFatPercent' | 'muscleMassKg' | 'waterPercent';
 
 interface MetricTrendChartProps {
   data: BodyMeasurement[];
@@ -42,7 +42,11 @@ export function MetricTrendChart({
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={chartData}
-          margin={compact ? { top: 8, right: 0, left: 0, bottom: 0 } : { top: 16, right: 8, left: 0, bottom: 0 }}
+          margin={
+            compact
+              ? { top: 8, right: 0, left: 0, bottom: 0 }
+              : { top: 16, right: 8, left: 0, bottom: 0 }
+          }
         >
           <defs>
             <linearGradient id={`${metricKey}-gradient`} x1="0" y1="0" x2="0" y2="1">
@@ -50,7 +54,9 @@ export function MetricTrendChart({
               <stop offset="100%" stopColor={fill} stopOpacity={0.05} />
             </linearGradient>
           </defs>
-          {!compact ? <CartesianGrid vertical={false} strokeDasharray="4 4" strokeOpacity={0.16} /> : null}
+          {!compact ? (
+            <CartesianGrid vertical={false} strokeDasharray="4 4" strokeOpacity={0.16} />
+          ) : null}
           <XAxis
             dataKey="dateLabel"
             tick={compact ? false : { fontSize: 11 }}

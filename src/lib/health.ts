@@ -79,6 +79,7 @@ const deriveInitialMeasurement = (
   const heightMeters = profile.heightCm / 100;
   const bmi = profile.startWeightKg / (heightMeters * heightMeters);
   const bodyFatPercent = clamp(round(19 + (bmi - 22) * 1.2), 10, 45);
+  const steps = clamp(Math.round(5500 - (bmi - 25) * 220), 2500, 12000);
   const muscleMassKg = clamp(
     round(profile.startWeightKg * (0.52 - (bmi - 22) * 0.005), 2),
     20,
@@ -91,6 +92,7 @@ const deriveInitialMeasurement = (
   return {
     date: new Date().toISOString().slice(0, 10),
     weightKg: profile.startWeightKg,
+    steps,
     bodyFatPercent,
     muscleMassKg,
     waterPercent,
@@ -150,6 +152,10 @@ const getRecommendations = (
     recommendations.push(
       'Добавь 2-3 силовые тренировки и 7-10 тыс. шагов: это лучше всего снижает жир.',
     );
+  }
+
+  if (latest.steps < 7000) {
+    recommendations.push('Постепенно увеличивай дневную активность до 7-10 тыс. шагов.');
   }
 
   if (latest.waterPercent < 50) {
@@ -235,6 +241,18 @@ export const calculateInsights = (
       unit: '',
       status: bmiStatus(bmi),
       helper: `Здоровый диапазон ${healthyRange.min}-${healthyRange.max} кг.`,
+    },
+    {
+      title: 'Шаги',
+      value: latest.steps,
+      unit: '',
+      status:
+        latest.steps >= 10000
+          ? { tone: 'success', label: 'Отлично' }
+          : latest.steps >= 7000
+            ? { tone: 'warning', label: 'Близко к цели' }
+            : { tone: 'danger', label: 'Мало активности' },
+      helper: 'Цель для снижения веса: 7 000-10 000 шагов в день.',
     },
     {
       title: 'Жир',
