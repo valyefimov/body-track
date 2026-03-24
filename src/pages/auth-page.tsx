@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { clearAuthMessages, signInWithGoogle } from '@/features/auth/authSlice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { motion } from 'framer-motion';
@@ -60,24 +59,30 @@ export function AuthPage() {
         transition={{ duration: 0.35 }}
         className="relative z-10 grid w-full max-w-5xl gap-5 lg:grid-cols-[1.1fr_1fr]"
       >
-        <Card className="border-0 bg-gradient-to-br from-orange-600 via-amber-500 to-teal-500 text-white shadow-2xl">
-          <CardHeader className="space-y-3">
-            <CardTitle className="text-3xl font-semibold leading-tight">Body Track</CardTitle>
-            <CardDescription className="max-w-md text-white/85">
+        <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-orange-700 via-amber-600 to-teal-700 text-white shadow-2xl">
+          <div className="pointer-events-none absolute inset-0 bg-black/18" />
+          <CardHeader className="relative z-10 space-y-3">
+            <CardTitle className="text-3xl font-semibold leading-tight text-white drop-shadow-sm">
+              Body Track
+            </CardTitle>
+            <CardDescription className="max-w-md text-white drop-shadow-sm">
               Веб-приложение для замеров тела, прогресса и персональных рекомендаций по похудению.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="relative z-10 space-y-4">
             {perks.map((perk) => {
               const Icon = perk.icon;
 
               return (
-                <div key={perk.title} className="rounded-2xl bg-white/15 px-4 py-3 backdrop-blur">
-                  <p className="flex items-center gap-2 text-sm font-semibold">
+                <div
+                  key={perk.title}
+                  className="rounded-2xl border border-white/25 bg-black/16 px-4 py-3 backdrop-blur-sm"
+                >
+                  <p className="flex items-center gap-2 text-sm font-semibold text-white drop-shadow-sm">
                     <Icon className="size-4" />
                     {perk.title}
                   </p>
-                  <p className="mt-1 text-sm text-white/85">{perk.text}</p>
+                  <p className="mt-1 text-sm text-white">{perk.text}</p>
                 </div>
               );
             })}
@@ -86,44 +91,24 @@ export function AuthPage() {
 
         <Card className="border bg-card/95 shadow-xl backdrop-blur">
           <CardHeader>
-            <CardTitle>Вход и регистрация</CardTitle>
-            <CardDescription>Сейчас доступна авторизация через Google Account.</CardDescription>
+            <CardTitle>Вход</CardTitle>
+            <CardDescription>
+              Войди через Google. Если аккаунт новый, мы спросим рост и вес в следующем шаге.
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="login" className="gap-4">
-              <TabsList className="w-full">
-                <TabsTrigger value="login">Вход</TabsTrigger>
-                <TabsTrigger value="register">Регистрация</TabsTrigger>
-              </TabsList>
-              <TabsContent value="login" className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Авторизуйся, чтобы продолжить трекать прогресс.
-                </p>
-                <Button
-                  className="w-full"
-                  onClick={() => {
-                    void dispatch(signInWithGoogle());
-                  }}
-                  disabled={actionStatus === 'loading'}
-                >
-                  {actionStatus === 'loading' ? 'Выполняем вход...' : 'Войти через Google'}
-                </Button>
-              </TabsContent>
-              <TabsContent value="register" className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  После первого входа мы сразу попросим возраст, рост и вес для первичных расчетов.
-                </p>
-                <Button
-                  className="w-full"
-                  onClick={() => {
-                    void dispatch(signInWithGoogle());
-                  }}
-                  disabled={actionStatus === 'loading'}
-                >
-                  {actionStatus === 'loading' ? 'Подключаем...' : 'Создать аккаунт через Google'}
-                </Button>
-              </TabsContent>
-            </Tabs>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Авторизуйся, чтобы продолжить трекать прогресс.
+            </p>
+            <Button
+              className="w-full"
+              onClick={() => {
+                void dispatch(signInWithGoogle());
+              }}
+              disabled={actionStatus === 'loading'}
+            >
+              {actionStatus === 'loading' ? 'Выполняем вход...' : 'Войти через Google'}
+            </Button>
 
             <div className="mt-4 flex items-center justify-between">
               <Link
@@ -132,7 +117,6 @@ export function AuthPage() {
               >
                 Forgot password?
               </Link>
-              <span className="text-xs text-muted-foreground">PWA + Firebase + Redux Toolkit</span>
             </div>
 
             {error ? <p className="mt-3 text-sm text-rose-500">{error}</p> : null}

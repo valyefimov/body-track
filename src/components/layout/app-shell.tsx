@@ -10,7 +10,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { AnimatePresence, motion } from 'framer-motion';
-import { LogOut, Menu, Plus, Target } from 'lucide-react';
+import { LogOut, Menu, Plus, Settings, Target } from 'lucide-react';
 import { useState } from 'react';
 
 interface AppShellProps {
@@ -18,6 +18,7 @@ interface AppShellProps {
   userEmail: string;
   userPhoto?: string;
   onAddMeasurement: () => void;
+  onOpenProfileSettings: () => void;
   onLogout: () => void;
   children: React.ReactNode;
 }
@@ -41,6 +42,7 @@ export function AppShell({
   userEmail,
   userPhoto,
   onAddMeasurement,
+  onOpenProfileSettings,
   onLogout,
   children,
 }: AppShellProps) {
@@ -67,6 +69,10 @@ export function AppShell({
               <Button onClick={onAddMeasurement}>
                 <Plus className="size-4" />
                 Добавить замер
+              </Button>
+              <Button variant="outline" onClick={onOpenProfileSettings}>
+                <Settings className="size-4" />
+                Настройки
               </Button>
               <Button variant="outline" onClick={onLogout}>
                 <LogOut className="size-4" />
@@ -119,6 +125,17 @@ export function AppShell({
           </SheetHeader>
           <div className="space-y-3 p-4">
             <ThemeToggle className="w-full justify-start" />
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => {
+                setIsMenuOpen(false);
+                onOpenProfileSettings();
+              }}
+            >
+              <Settings className="size-4" />
+              Настройки
+            </Button>
             <Button
               variant="outline"
               className="w-full justify-start"

@@ -35,21 +35,32 @@ export function ScoreHero({ insights, weightDelta, fatDelta }: ScoreHeroProps) {
       transition={{ duration: 0.32 }}
       className="grid gap-4 lg:grid-cols-[1.4fr_1fr]"
     >
-      <Card className="overflow-hidden border-0 bg-gradient-to-br from-orange-500 via-amber-500 to-teal-500 text-white shadow-xl">
-        <CardHeader className="pb-0">
-          <CardTitle className="flex items-center gap-2 text-base font-medium text-white/90">
+      <Card className="relative overflow-hidden border bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-xl">
+        <motion.div
+          className="pointer-events-none absolute -left-16 -top-20 size-72 rounded-full bg-orange-500/35 blur-3xl"
+          animate={{ x: [0, 24, 0], y: [0, -12, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="pointer-events-none absolute -bottom-24 right-0 size-80 rounded-full bg-cyan-400/30 blur-3xl"
+          animate={{ x: [0, -18, 0], y: [0, 14, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+        />
+        <div className="pointer-events-none absolute inset-0 bg-black/28" />
+        <CardHeader className="relative z-10 pb-0">
+          <CardTitle className="flex items-center gap-2 text-base font-medium text-white drop-shadow-sm">
             <HeartPulse className="size-4" />
             Оценка тела сегодня
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 pt-4">
+        <CardContent className="relative z-10 space-y-4 pt-4">
           <div className="flex items-end gap-3">
-            <p className="text-6xl font-semibold leading-none">{insights.bodyScore}</p>
-            <Badge className="rounded-full bg-white/20 px-3 text-white hover:bg-white/20">
+            <p className="text-6xl font-semibold leading-none drop-shadow-sm">{insights.bodyScore}</p>
+            <Badge className="rounded-full border border-white/30 bg-white/18 px-3 text-white shadow-sm hover:bg-white/18">
               {scoreBadge(insights.bodyScore)}
             </Badge>
           </div>
-          <p className="max-w-lg text-sm text-white/85">{insights.motivation}</p>
+          <p className="max-w-lg text-sm text-white/95 drop-shadow-sm">{insights.motivation}</p>
         </CardContent>
       </Card>
 

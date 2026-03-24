@@ -20,16 +20,40 @@ const badgeVariantMap = {
 interface MetricCardProps {
   metric: InsightMetric;
   index: number;
+  onClick?: () => void;
+  tooltip?: string;
 }
 
-export function MetricCard({ metric, index }: MetricCardProps) {
+export function MetricCard({ metric, index, onClick, tooltip }: MetricCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: index * 0.03 }}
+      whileHover={{ y: -4, scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
     >
-      <Card className="h-full border bg-card/90">
+      <Card
+        className={`h-full border bg-card/90 ${
+          onClick
+            ? 'cursor-pointer transition hover:border-primary/60 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary/40'
+            : ''
+        }`}
+        title={tooltip}
+        role={onClick ? 'button' : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        onClick={onClick}
+        onKeyDown={
+          onClick
+            ? (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onClick();
+                }
+              }
+            : undefined
+        }
+      >
         <CardHeader className="space-y-2">
           <div className="flex items-center justify-between gap-2">
             <CardDescription className="text-xs uppercase tracking-wide">

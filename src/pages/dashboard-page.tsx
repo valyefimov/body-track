@@ -2,6 +2,7 @@ import { MetricTrendChart } from '@/components/charts/metric-trend-chart';
 import { AddMeasurementDialog } from '@/components/dashboard/add-measurement-dialog';
 import { HistoryList } from '@/components/dashboard/history-list';
 import { MetricCard } from '@/components/dashboard/metric-card';
+import { ProfileSettingsDialog } from '@/components/dashboard/profile-settings-dialog';
 import { RangeBar } from '@/components/dashboard/range-bar';
 import { RecommendationsCard } from '@/components/dashboard/recommendations-card';
 import { ScoreHero } from '@/components/dashboard/score-hero';
@@ -9,13 +10,13 @@ import { AppShell } from '@/components/layout/app-shell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { logout } from '@/features/auth/authSlice';
-import { createMeasurement } from '@/features/body/bodySlice';
+import { createMeasurement, saveProfile } from '@/features/body/bodySlice';
 import { calculateInsights, getInitialMeasurement } from '@/lib/health';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import type { MeasurementInput } from '@/types';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { BarChart3, TrendingDown, TrendingUp } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -72,12 +73,28 @@ const getLevelLabel = (value: number, low: number, medium: number, high: number)
   return 'Высокий';
 };
 
+const getLevelTextClass = (label: string): string => {
+  if (label === 'Низкий') {
+    return 'text-blue-400';
+  }
+  if (label === 'Нормальный') {
+    return 'text-lime-400';
+  }
+  if (label === 'Выше среднего') {
+    return 'text-amber-400';
+  }
+
+  return 'text-rose-400';
+};
+
 export function DashboardPage() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { profile, measurements, saveStatus, error } = useAppSelector((state) => state.body);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [activeTrendTab, setActiveTrendTab] = useState('bmi');
+  const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
+  const [activeTrendTab, setActiveTrendTab] = useState('weight');
+  const detailedSectionRef = useRef<HTMLElement | null>(null);
 
   const latest = measurements.length > 0 ? measurements[measurements.length - 1] : null;
   const previous = measurements.length > 1 ? measurements[measurements.length - 2] : null;
@@ -292,6 +309,14 @@ export function DashboardPage() {
 
   const trendTabs = useMemo<TrendMetricTab[]>(() => {
     return [
+      {
+        id: 'weight',
+        label: 'Вес',
+        metricKey: 'weightKg',
+        stroke: '#84cc16',
+        fill: '#84cc16',
+        unit: ' кг',
+      },
       { id: 'bmi', label: 'ИМТ', metricKey: 'bmi', stroke: '#f97316', fill: '#f97316', unit: '' },
       {
         id: 'fat',
@@ -350,7 +375,6 @@ export function DashboardPage() {
         unit: ' кг',
       },
       { id: 'steps', label: 'Шаги', metricKey: 'steps', stroke: '#0ea5e9', fill: '#0ea5e9', unit: ' шагов' },
-      { id: 'weight', label: 'Вес', metricKey: 'weightKg', stroke: '#84cc16', fill: '#84cc16', unit: ' кг' },
       {
         id: 'bmr',
         label: 'Осн. обмен',
@@ -363,6 +387,13 @@ export function DashboardPage() {
   }, []);
 
   const selectedTrendTab = trendTabs.find((tab) => tab.id === activeTrendTab) ?? trendTabs[0];
+
+  const scrollToDetailedRanges = () => {
+    detailedSectionRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
 
   const defaults = useMemo<MeasurementInput>(() => {
     if (latest) {
@@ -410,6 +441,21 @@ export function DashboardPage() {
     setIsDialogOpen(false);
   };
 
+  const handleSaveProfileSettings = async (payload: {
+    age: number;
+    heightCm: number;
+    startWeightKg: number;
+  }) => {
+    await dispatch(
+      saveProfile({
+        uid: user.uid,
+        profile: payload,
+      }),
+    ).unwrap();
+
+    setIsProfileSettingsOpen(false);
+  };
+
   return (
     <>
       <AppShell
@@ -417,6 +463,7 @@ export function DashboardPage() {
         userEmail={user.email}
         userPhoto={user.photoURL}
         onAddMeasurement={() => setIsDialogOpen(true)}
+        onOpenProfileSettings={() => setIsProfileSettingsOpen(true)}
         onLogout={() => {
           void dispatch(logout());
         }}
@@ -427,7 +474,13 @@ export function DashboardPage() {
 
             <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {insights.metrics.map((metric, index) => (
-                <MetricCard key={metric.title} metric={metric} index={index} />
+                <MetricCard
+                  key={metric.title}
+                  metric={metric}
+                  index={index}
+                  onClick={scrollToDetailedRanges}
+                  tooltip="Нажми, чтобы перейти к подробным диапазонам"
+                />
               ))}
             </section>
 
@@ -471,33 +524,45 @@ export function DashboardPage() {
                   <div className="mb-4 overflow-x-auto pb-1">
                     <div className="flex min-w-max items-center gap-2">
                       {trendTabs.map((tab) => (
-                        <Button
-                          key={tab.id}
-                          variant={tab.id === selectedTrendTab.id ? 'default' : 'secondary'}
-                          size="sm"
-                          className="rounded-full px-3"
-                          onClick={() => setActiveTrendTab(tab.id)}
-                        >
-                          {tab.label}
-                        </Button>
+                        <motion.div key={tab.id} whileHover={{ y: -1, scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                          <Button
+                            variant={tab.id === selectedTrendTab.id ? 'default' : 'secondary'}
+                            size="sm"
+                            className="rounded-full px-3"
+                            onClick={() => setActiveTrendTab(tab.id)}
+                          >
+                            {tab.label}
+                          </Button>
+                        </motion.div>
                       ))}
                     </div>
                   </div>
 
-                  <MetricTrendChart
-                    data={measurements}
-                    metricKey={selectedTrendTab.metricKey}
-                    stroke={selectedTrendTab.stroke}
-                    fill={selectedTrendTab.fill}
-                    unit={selectedTrendTab.unit}
-                    heightCm={profile.heightCm}
-                    age={profile.age}
-                  />
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={selectedTrendTab.id}
+                      initial={{ opacity: 0, y: 10, scale: 0.995 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.995 }}
+                      transition={{ duration: 0.22 }}
+                    >
+                      <MetricTrendChart
+                        data={measurements}
+                        metricKey={selectedTrendTab.metricKey}
+                        stroke={selectedTrendTab.stroke}
+                        fill={selectedTrendTab.fill}
+                        unit={selectedTrendTab.unit}
+                        heightCm={profile.heightCm}
+                        age={profile.age}
+                      />
+                    </motion.div>
+                  </AnimatePresence>
                 </CardContent>
               </Card>
             </motion.section>
 
             <motion.section
+              ref={detailedSectionRef}
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.28, delay: 0.12 }}
@@ -507,16 +572,30 @@ export function DashboardPage() {
                   <CardTitle>Подробные диапазоны показателей</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {detailedMetrics.map((item) => (
-                    <div key={item.key} className="rounded-xl border bg-muted/20 p-3 sm:p-4">
+                  {detailedMetrics.map((item, index) => (
+                    <motion.div
+                      key={item.key}
+                      className="rounded-xl border bg-muted/20 p-3 sm:p-4"
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.24, delay: index * 0.02 }}
+                      whileHover={{ y: -2 }}
+                    >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                           <p className="text-base font-semibold sm:text-lg">{item.title}</p>
                           <p className="mt-1 text-sm text-muted-foreground">{item.helper}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-semibold sm:text-2xl">{item.valueLabel}</p>
-                          <p className="text-sm text-muted-foreground">{item.statusLabel}</p>
+                          <p
+                            className={`text-xl font-semibold sm:text-2xl ${getLevelTextClass(item.statusLabel)}`}
+                          >
+                            {item.valueLabel}
+                          </p>
+                          <p className={`text-sm ${getLevelTextClass(item.statusLabel)}`}>
+                            {item.statusLabel}
+                          </p>
                         </div>
                       </div>
                       <RangeBar
@@ -527,7 +606,7 @@ export function DashboardPage() {
                         ticks={item.range.ticks}
                         segments={item.range.segments}
                       />
-                    </div>
+                    </motion.div>
                   ))}
                 </CardContent>
               </Card>
@@ -560,6 +639,14 @@ export function DashboardPage() {
         defaults={defaults}
         onSubmit={handleSaveMeasurement}
         isSaving={saveStatus === 'loading'}
+      />
+
+      <ProfileSettingsDialog
+        open={isProfileSettingsOpen}
+        onOpenChange={setIsProfileSettingsOpen}
+        profile={profile}
+        isSaving={saveStatus === 'loading'}
+        onSubmit={handleSaveProfileSettings}
       />
     </>
   );

@@ -9,7 +9,9 @@ import {
   getDocs,
   orderBy,
   query,
+  serverTimestamp,
   setDoc,
+  Timestamp,
 } from 'firebase/firestore';
 
 interface ProfileInput {
@@ -42,6 +44,18 @@ const getMeasurementsCollection = (uid: string) => {
   return collection(db, 'users', uid, 'measurements');
 };
 
+const toMillis = (value: unknown): number => {
+  if (value instanceof Timestamp) {
+    return value.toMillis();
+  }
+
+  if (typeof value === 'number') {
+    return value;
+  }
+
+  return Date.now();
+};
+
 const toMeasurement = (id: string, data: Record<string, unknown>): BodyMeasurement => {
   const weightKg = Number(data.weightKg ?? 0);
   const bodyFatPercent = Number(data.bodyFatPercent ?? 0);
@@ -60,7 +74,7 @@ const toMeasurement = (id: string, data: Record<string, unknown>): BodyMeasureme
     proteinPercent: Number(data.proteinPercent ?? 0),
     visceralFatLevel: Number(data.visceralFatLevel ?? 0),
     note: data.note ? String(data.note) : '',
-    createdAt: Number(data.createdAt ?? Date.now()),
+    createdAt: toMillis(data.createdAt),
   };
 };
 
@@ -69,8 +83,8 @@ const toProfile = (data: Record<string, unknown>): UserProfile => {
     age: Number(data.age ?? 0),
     heightCm: Number(data.heightCm ?? 0),
     startWeightKg: Number(data.startWeightKg ?? 0),
-    createdAt: Number(data.createdAt ?? Date.now()),
-    updatedAt: Number(data.updatedAt ?? Date.now()),
+    createdAt: toMillis(data.createdAt),
+    updatedAt: toMillis(data.updatedAt),
   };
 };
 
@@ -131,16 +145,19 @@ export const createMeasurement = createAsyncThunk<
   { rejectValue: string }
 >('body/createMeasurement', async ({ uid, measurement }, { rejectWithValue }) => {
   try {
+    const localCreatedAt = Date.now();
     const payload = {
       ...measurement,
       note: measurement.note ?? '',
-      createdAt: Date.now(),
+      createdAt: serverTimestamp(),
     };
 
     const ref = await addDoc(getMeasurementsCollection(uid), payload);
     return {
-      ...payload,
+      ...measurement,
+      note: measurement.note ?? '',
       id: ref.id,
+      createdAt: localCreatedAt,
     };
   } catch {
     return rejectWithValue('Не удалось сохранить запись замера.');

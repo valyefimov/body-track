@@ -69,7 +69,7 @@ export function RangeBar({ min, max, value, segments, ticks = [], className }: R
           })}
         </div>
         <div
-          className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-card shadow"
+          className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-slate-500/70 bg-card shadow ring-2 ring-background dark:border-white"
           style={{ left: `${markerLeft}%` }}
         />
       </div>

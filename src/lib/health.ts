@@ -241,7 +241,7 @@ export const calculateInsights = (
     max: round(latest.weightKg * 0.05, 1),
   };
   const targetBodyFat = 20;
-  const targetToLoseKg = Math.max(0, fatMassKg - latest.weightKg * (targetBodyFat / 100));
+  const targetToLoseKg = Math.max(0, derivedFatMassKg - latest.weightKg * (targetBodyFat / 100));
 
   const bodyScore = Math.round(
     scoreFromRange(bmi, 18.5, 24.9) * 0.25 +

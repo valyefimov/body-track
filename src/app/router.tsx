@@ -14,13 +14,18 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 function GuestOnly({ children }: { children: React.ReactNode }) {
   const user = useAppSelector((state) => state.auth.user);
   const authStatus = useAppSelector((state) => state.auth.status);
+  const body = useAppSelector((state) => state.body);
 
   if (authStatus === 'loading') {
     return <LoadingScreen />;
   }
 
   if (user) {
-    return <Navigate replace to="/dashboard" />;
+    if (body.status === 'loading' || body.status === 'idle') {
+      return <LoadingScreen label="Проверяем профиль..." />;
+    }
+
+    return <Navigate replace to={body.profile ? '/dashboard' : '/onboarding'} />;
   }
 
   return <>{children}</>;
